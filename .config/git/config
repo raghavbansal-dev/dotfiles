@@ -1,0 +1,20 @@
+[user]
+	name = raghavbansal-dev
+	email = raghavbansal262007@gmail.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[core]
+	autocrlf = input
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[safe]
+	directory = /mnt/c/Users/ragha/Documents/NOTES
+[credential "https://gitlab.com"]
+	helper = 
+	helper = !/usr/bin/glab auth git-credential
