@@ -127,3 +127,19 @@ notes-sync() {
 }
 . "$HOME/.cargo/env"
 alias dotfiles='/usr/bin/git --git-dir=/home/raghav/.dotfiles/ --work-tree=/home/raghav'
+
+# Sync dotfiles to both GitHub and GitLab
+dotsync() {
+    local msg="${1:-auto: $(date +'%Y-%m-%d %H:%M')}"
+    dotfiles add -u
+    if dotfiles diff --cached --quiet; then
+        echo "No changes to sync."
+        return 0
+    fi
+    dotfiles commit -m "$msg" || return 1
+    echo "→ Pushing to GitHub..."
+    dotfiles push origin main || echo "GitHub push failed"
+    echo "→ Pushing to GitLab..."
+    dotfiles push gitlab main || echo "GitLab push failed"
+    echo "✓ Done."
+}
