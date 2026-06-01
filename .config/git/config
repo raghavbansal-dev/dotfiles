@@ -15,6 +15,7 @@
 	helper = !/usr/bin/gh auth git-credential
 [safe]
 	directory = /mnt/c/Users/ragha/Documents/NOTES
+	directory = /media/sf_NOTES
 [credential "https://gitlab.com"]
 	helper = 
 	helper = !/usr/bin/glab auth git-credential

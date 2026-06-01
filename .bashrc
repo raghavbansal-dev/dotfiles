@@ -119,14 +119,12 @@ fi
 . "$HOME/.local/bin/env"
 
 # Notes Sync
-alias notes='cd /mnt/c/Users/ragha/Documents/NOTES'
+alias notes='cd /media/sf_NOTES'
 notes-sync() {
-  cd /mnt/c/Users/ragha/Documents/NOTES || return
-  local msg="Notes version $(date +'%Y-%m-%d %H:%M')"
-  git add . && git commit -m "$msg" && git push origin main && git push gitlab main
+    cd /media/sf_NOTES || return
+    local msg="Notes version $(date +'%Y-%m-%d %H:%M')"
+    git add . && git commit -m "$msg" && git push origin main && git push gitlab main
 }
-. "$HOME/.cargo/env"
-alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
 # Sync dotfiles to both GitHub and GitLab
 dotsync() {
