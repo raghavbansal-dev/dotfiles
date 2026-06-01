@@ -126,7 +126,7 @@ notes-sync() {
   git add . && git commit -m "$msg" && git push origin main && git push gitlab main
 }
 . "$HOME/.cargo/env"
-alias dotfiles='/usr/bin/git --git-dir=/home/raghav/.dotfiles/ --work-tree=/home/raghav'
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
 # Sync dotfiles to both GitHub and GitLab
 dotsync() {
