@@ -1,0 +1,22 @@
+# Backups and temp
+*.bak
+*.swp
+*~
+
+# Unused shell config (using bash, not zsh)
+.zshrc
+
+# Sensitive — never track
+.ssh/
+.config/gh/
+.config/glab-cli/
+.bash_history
+.zsh_history
+
+# Caches and runtime junk
+.cache/
+.local/share/
+.vboxclient-*.pid
+
+# Don't track the dotfiles repo's own checkout noise
+.config/nvim/init.lua.bak

@@ -118,12 +118,14 @@ fi
 
 . "$HOME/.local/bin/env"
 
-# Notes Sync
+# Notes Sync (works from any directory)
 alias notes='cd /media/sf_NOTES'
 notes-sync() {
-    cd /media/sf_NOTES || return
-    local msg="Notes version $(date +'%Y-%m-%d %H:%M')"
-    git add . && git commit -m "$msg" && git push origin main && git push gitlab main
+    (
+        cd /media/sf_NOTES || { echo "NOTES folder not mounted"; return 1; }
+        local msg="Notes version $(date +'%Y-%m-%d %H:%M')"
+        git add . && git commit -m "$msg" && git push origin main && git push gitlab main
+    )
 }
 
 # Sync dotfiles to both GitHub and GitLab
@@ -141,5 +143,4 @@ dotsync() {
     dotfiles push gitlab main || echo "GitLab push failed"
     echo "✓ Done."
 }
-alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
