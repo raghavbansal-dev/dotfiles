@@ -141,3 +141,5 @@ dotsync() {
     dotfiles push gitlab main || echo "GitLab push failed"
     echo "✓ Done."
 }
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'

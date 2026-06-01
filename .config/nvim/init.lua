@@ -8,7 +8,7 @@ do
 	vim.g.maplocalleader = " "
 
 	-- Icons disabled because of font glyph coverage issues
-	vim.g.have_nerd_font = false
+	vim.g.have_nerd_font = true
 
 	vim.o.number = true
   vim.o.relativenumber = true
