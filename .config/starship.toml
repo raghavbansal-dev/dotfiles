@@ -12,19 +12,16 @@ format = """
 [](surface0)\
 $os\
 $username\
-[](bg:peach fg:surface0)\
 $directory\
-[](fg:peach bg:green)\
+[](fg:surface0 bg:surface1)\
 $git_branch\
 $git_status\
-[](fg:green bg:teal)\
+[](fg:surface1 bg:surface0)\
 $c\
 $python\
 $rust\
 $java\
-[](fg:teal bg:blue)\
 $nodejs\
-[](fg:blue bg:surface0)\
 $cmd_duration\
 [ ](fg:surface0)\
 $line_break\
@@ -54,7 +51,7 @@ format = '[ $user]($style)'
 # Directory
 # ─────────────────────────────────────────────
 [directory]
-style = "fg:crust bg:peach"
+style = "fg:peach bg:surface0 bold"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -71,11 +68,11 @@ truncation_symbol = "…/"
 # ─────────────────────────────────────────────
 [git_branch]
 symbol = ""
-style = "bg:green fg:crust"
+style = "fg:green bg:surface1 bold"
 format = '[ $symbol $branch ]($style)'
 
 [git_status]
-style = "bg:green fg:crust"
+style = "fg:green bg:surface1 bold"
 format = '[$all_status$ahead_behind ]($style)'
 
 # ─────────────────────────────────────────────
@@ -83,27 +80,27 @@ format = '[$all_status$ahead_behind ]($style)'
 # ─────────────────────────────────────────────
 [c]
 symbol = " "
-style = "bg:teal fg:crust"
+style = "fg:teal bg:surface0 bold"
 format = '[ $symbol ($version) ]($style)'
 
 [python]
 symbol = " "
-style = "bg:teal fg:crust"
+style = "fg:teal bg:surface0 bold"
 format = '[ $symbol ($version) ]($style)'
 
 [rust]
 symbol = " "
-style = "bg:teal fg:crust"
+style = "fg:teal bg:surface0 bold"
 format = '[ $symbol ($version) ]($style)'
 
 [java]
 symbol = " "
-style = "bg:teal fg:crust"
+style = "fg:teal bg:surface0 bold"
 format = '[ $symbol ($version) ]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:blue fg:crust"
+style = "fg:blue bg:surface0 bold"
 format = '[ $symbol ($version) ]($style)'
 
 # ─────────────────────────────────────────────
@@ -111,7 +108,7 @@ format = '[ $symbol ($version) ]($style)'
 # ─────────────────────────────────────────────
 [cmd_duration]
 min_time = 2000
-style = "bg:surface0 fg:text"
+style = "fg:subtext0 bg:surface0"
 format = '[  $duration ]($style)'
 
 # ─────────────────────────────────────────────
