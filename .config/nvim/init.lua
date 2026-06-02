@@ -11,7 +11,7 @@ do
 	vim.g.have_nerd_font = true
 
 	vim.o.number = true
-  vim.o.relativenumber = true
+	vim.o.relativenumber = true
 	vim.o.mouse = "a"
 	vim.o.showmode = false
 	vim.schedule(function()
@@ -328,6 +328,10 @@ do
 		basedpyright = {},
 		ruff = {},
 		jdtls = {},
+		html = {},
+		cssls = {},
+		ts_ls = {},
+		emmet_language_server = {},
 
 		lua_ls = {
 			on_init = function(client)
@@ -380,6 +384,7 @@ do
 	vim.list_extend(ensure_installed, {
 		"stylua",
 		"clang-format",
+		"prettier",
 	})
 
 	require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
@@ -418,6 +423,10 @@ do
 			cpp = { "clang-format" },
 			python = { "ruff_format" },
 			lua = { "stylua" },
+			html = { "prettier" },
+			css = { "prettier" },
+			javascript = { "prettier" },
+			json = { "prettier" },
 		},
 	})
 
@@ -470,6 +479,9 @@ do
 		"query",
 		"vim",
 		"vimdoc",
+		"css",
+		"javascript",
+		"jsdoc",
 	}
 	require("nvim-treesitter").install(parsers)
 

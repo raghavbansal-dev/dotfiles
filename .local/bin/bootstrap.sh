@@ -95,7 +95,8 @@ case "$PM" in
       ripgrep fd-find \
       xclip wl-clipboard \
       bear \
-      kitty
+      kitty \
+      nodejs npm
     # Debian/Ubuntu install fd as 'fdfind'; telescope/configs expect 'fd'.
     if have fdfind && ! have fd; then
       mkdir -p "$HOME/.local/bin"
@@ -113,7 +114,8 @@ case "$PM" in
       ripgrep fd-find \
       xclip wl-clipboard \
       bear \
-      kitty
+      kitty \
+      nodejs npm
     ;;
   pacman)
     pm_install \
@@ -125,7 +127,8 @@ case "$PM" in
       ripgrep fd \
       xclip wl-clipboard \
       bear \
-      kitty
+      kitty \
+      nodejs npm
     ;;
 esac
 ok "System packages installed."
