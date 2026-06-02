@@ -118,6 +118,9 @@ fi
 
 . "$HOME/.local/bin/env"
 
+# ── dotfiles alias FIRST (functions below depend on it) ──
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
 # Notes Sync (works from any directory)
 alias notes='cd /media/sf_NOTES'
 notes-sync() {
@@ -143,4 +146,6 @@ dotsync() {
     dotfiles push gitlab main || echo "GitLab push failed"
     echo "✓ Done."
 }
-alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+# Starship prompt (must be last)
+eval "$(starship init bash)"
