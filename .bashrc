@@ -118,6 +118,8 @@ fi
 
 . "$HOME/.local/bin/env"
 
+alias nvim-update='cd ~/.local/src/neovim && git fetch && git checkout stable && git pull && make distclean && make CMAKE_BUILD_TYPE=Release && sudo make install && cd -'
+
 # ── dotfiles alias FIRST (functions below depend on it) ──
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
