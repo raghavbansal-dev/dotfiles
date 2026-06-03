@@ -4,7 +4,7 @@
 #
 # What it does (idempotent — safe to re-run):
 #   1. Detects the distro's package manager (apt / dnf / pacman)
-#   2. Installs system packages (compilers, clipboard, ripgrep/fd, build deps...)
+#   2. Installs system packages (compilers, clipboard, ssh, gh/glab, tree-sitter-cli...)
 #   3. Builds Neovim from source (latest stable tag)
 #   4. Installs tools not in distro repos: lazygit, uv, Rust (rustup), pynvim, starship
 #   5. Installs JetBrainsMono Nerd Font + Kitty terminal
@@ -98,12 +98,19 @@ case "$PM" in
       xclip wl-clipboard \
       bear \
       kitty \
-      nodejs npm
+      nodejs npm \
+      openssh-client gh
     # Debian/Ubuntu install fd as 'fdfind'; telescope/configs expect 'fd'.
     if have fdfind && ! have fd; then
       mkdir -p "$HOME/.local/bin"
       ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
       ok "Symlinked fdfind -> fd in ~/.local/bin"
+    fi
+    # tree-sitter-cli isn't reliably packaged on apt; install via npm if missing.
+    if ! have tree-sitter; then
+      sudo npm install -g tree-sitter-cli >/dev/null 2>&1 \
+        && ok "tree-sitter-cli installed via npm" \
+        || warn "tree-sitter-cli install failed (run :TSUpdate may need it)"
     fi
     ;;
   dnf)
@@ -117,12 +124,14 @@ case "$PM" in
       xclip wl-clipboard \
       bear \
       kitty \
-      nodejs npm
+      nodejs npm \
+      openssh gh tree-sitter-cli
     ;;
   pacman)
     # On Arch: 'clang' includes clangd + clang-format (no separate packages).
     # 'python' includes venv in stdlib (no python-virtualenv needed).
     # 'fd' is named 'fd' (no fdfind symlink needed, unlike Debian).
+    # 'github-cli' is the gh package name; glab is in extra.
     pm_install \
       base-devel cmake gettext ninja \
       git curl unzip \
@@ -133,7 +142,9 @@ case "$PM" in
       xclip wl-clipboard \
       bear \
       kitty \
-      nodejs npm
+      nodejs npm \
+      openssh tree-sitter-cli \
+      github-cli glab
     ;;
 esac
 ok "System packages installed."
@@ -314,38 +325,41 @@ fi
 cat <<'NEXTSTEPS'
 
 ────────────────────────────────────────────────────────────
-  BOOTSTRAP COMPLETE — manual steps remain (these are secrets,
-  intentionally not automated):
+  BOOTSTRAP COMPLETE
 ────────────────────────────────────────────────────────────
 
-  1. SSH KEY (needed for dotfiles push/pull over SSH):
+  If you set up your SSH key BEFORE running this (recommended),
+  your dotfiles are already cloned and you're nearly done:
+
+  1. RELOAD SHELL — open a new terminal (or: source ~/.bashrc)
+     so the dotfiles .bashrc (dotfiles alias, dotsync, starship)
+     and new tools (uv, cargo) are on PATH. Then verify:
+       type dotfiles && dotfiles status
+
+  2. NEOVIM — launch `nvim` once:
+       • vim.pack downloads plugins (wait for it)
+       • :Mason  → confirm LSPs installed
+       • :TSUpdate  → compile treesitter parsers
+       • :qa and reopen, then :checkhealth
+
+  3. TERMINAL — Kitty is installed, reads ~/.config/kitty/kitty.conf
+     from your dotfiles (font + theme preset). Just launch it.
+     (If Kitty lags in a VM with no GPU, use the desktop's default
+     terminal instead; Starship works in any terminal.)
+
+  4. PROJECT CODE — clone your repos (they're NOT in dotfiles):
+       git clone git@github.com:raghavbansal-dev/cs50.git ~/cs50x
+
+  ── If the dotfiles clone FAILED above (no SSH key yet) ──
+     Set up the key, then re-run this script (it picks up here):
        ssh-keygen -t ed25519 -C "your.email@example.com"
-       cat ~/.ssh/id_ed25519.pub
-     Add that public key to:
-       • GitHub → Settings → SSH and GPG keys
-       • GitLab → Preferences → SSH Keys
-     Test:
-       ssh -T git@github.com
+       cat ~/.ssh/id_ed25519.pub     # add to GitHub + GitLab
+       ssh -T git@github.com         # test each separately
        ssh -T git@gitlab.com
 
-  2. If dotfiles didn't clone (no SSH key earlier), re-run THIS script
-     after step 1 — it will clone now.
-
-  3. TERMINAL: Kitty is installed and reads its config from
-     ~/.config/kitty/kitty.conf (in your dotfiles) — font and theme are
-     already set there, nothing to configure. Just launch Kitty.
-     (If the distro's default terminal opens instead, set Kitty as default
-     in Settings -> Default Applications, or just launch `kitty`.)
-
-  4. OPTIONAL CLI auth (only if you use gh/glab API features):
+  ── Optional CLI auth (gh/glab are installed; auth only if needed) ──
        gh auth login        # choose SSH
        glab auth login
-
-  5. NEOVIM: launch `nvim` once — vim.pack downloads plugins,
-     Mason installs LSPs. Wait for it to finish, then restart.
-
-  6. Reload your shell so new tools (uv, etc.) are on PATH:
-       source ~/.bashrc
 
 ────────────────────────────────────────────────────────────
 
