@@ -6,7 +6,7 @@
 #   1. Detects the distro's package manager (apt / dnf / pacman)
 #   2. Installs system packages (compilers, clipboard, ripgrep/fd, build deps...)
 #   3. Builds Neovim from source (latest stable tag)
-#   4. Installs tools not in distro repos: lazygit, uv, Rust (rustup), pynvim
+#   4. Installs tools not in distro repos: lazygit, uv, Rust (rustup), pynvim, starship
 #   5. Installs JetBrainsMono Nerd Font + Kitty terminal
 #   6. Sets git identity (name/email) if unset
 #   7. Clones + checks out dotfiles (bare repo), adds GitLab remote
@@ -72,7 +72,9 @@ pm_update() {
   case "$PM" in
     apt)    sudo apt-get update ;;
     dnf)    sudo dnf check-update || true ;;  # dnf returns 100 when updates exist
-    pacman) sudo pacman -Sy ;;
+    # Arch: -Sy alone causes partial-upgrade breakage; Arch requires a full -Syu
+    # before installing new packages. This does a full system upgrade.
+    pacman) sudo pacman -Syu --noconfirm ;;
   esac
 }
 
@@ -118,11 +120,14 @@ case "$PM" in
       nodejs npm
     ;;
   pacman)
+    # On Arch: 'clang' includes clangd + clang-format (no separate packages).
+    # 'python' includes venv in stdlib (no python-virtualenv needed).
+    # 'fd' is named 'fd' (no fdfind symlink needed, unlike Debian).
     pm_install \
       base-devel cmake gettext ninja \
       git curl unzip \
       clang \
-      python python-virtualenv \
+      python \
       jdk-openjdk \
       ripgrep fd \
       xclip wl-clipboard \
@@ -215,6 +220,21 @@ if have uv; then
       && ok "pynvim installed." \
       || warn "pynvim install failed (non-critical — most plugins are Lua)."
   fi
+fi
+
+# --- Starship (prompt) ---
+if have starship; then
+  ok "Starship already installed. Skipping."
+else
+  log "Installing Starship prompt..."
+  curl -sS https://starship.rs/install.sh | sh -s -- -y \
+    && ok "Starship installed." \
+    || err "Starship install failed."
+fi
+# Ensure bash is hooked to starship (idempotent — only adds the line once)
+if ! grep -q 'starship init bash' "$HOME/.bashrc" 2>/dev/null; then
+  echo 'eval "$(starship init bash)"' >> "$HOME/.bashrc"
+  ok "Added starship init to .bashrc"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
