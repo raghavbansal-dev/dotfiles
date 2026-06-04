@@ -1,61 +1,39 @@
 # ~/.config/starship.toml
-# Starship prompt config — Catppuccin Mocha palette (matches Kitty terminal).
+# Starship prompt config tokyo night config.
 # Docs: https://starship.rs/config/
 
 # Use the Catppuccin Mocha palette defined at the bottom.
-palette = "catppuccin_mocha"
+palette = "tokyonight"
 
-# ─────────────────────────────────────────────
-# Prompt format — order of modules left to right
-# ─────────────────────────────────────────────
 format = """
-[](surface0)\
 $os\
-$username\
 $directory\
-[](fg:surface0 bg:surface1)\
 $git_branch\
 $git_status\
-[](fg:surface1 bg:surface0)\
-$c\
-$python\
-$rust\
-$java\
-$nodejs\
+$c$python$rust$java$nodejs\
 $cmd_duration\
-[ ](fg:surface0)\
 $line_break\
 $character"""
 
-# ─────────────────────────────────────────────
-# OS / starting segment
-# ─────────────────────────────────────────────
+add_newline = true
+
 [os]
 disabled = false
-style = "bg:surface0 fg:text"
-
+format = "[$symbol]($style)"
+style = "fg:blue"
 [os.symbols]
+Arch = "󰣇 "
 Ubuntu = "󰕈 "
 Debian = "󰣚 "
-Arch = "󰣇 "
 Fedora = "󰣛 "
 Linux = " "
 
-[username]
-show_always = false
-style_user = "bg:surface0 fg:text"
-style_root = "bg:surface0 fg:red"
-format = '[ $user]($style)'
-
-# ─────────────────────────────────────────────
-# Directory
-# ─────────────────────────────────────────────
 [directory]
-style = "fg:peach bg:surface0 bold"
-format = "[ $path ]($style)"
+style = "fg:peach bold"
+format = "[$path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
-
+read_only = " 󰌾"
 [directory.substitutions]
 "Documents" = "󰈙 "
 "Downloads" = " "
@@ -63,89 +41,73 @@ truncation_symbol = "…/"
 "Pictures" = " "
 "Developer" = "󰲋 "
 
-# ─────────────────────────────────────────────
-# Git
-# ─────────────────────────────────────────────
 [git_branch]
 symbol = ""
-style = "fg:green bg:surface1 bold"
-format = '[ $symbol $branch ]($style)'
+style = "fg:green"
+format = "[$symbol $branch ]($style)"
 
 [git_status]
-style = "fg:green bg:surface1 bold"
-format = '[$all_status$ahead_behind ]($style)'
+style = "fg:yellow"
+format = "[$all_status$ahead_behind ]($style)"
 
-# ─────────────────────────────────────────────
-# Languages (only show when relevant files present)
-# ─────────────────────────────────────────────
 [c]
 symbol = " "
-style = "fg:teal bg:surface0 bold"
-format = '[ $symbol ($version) ]($style)'
-
+style = "fg:teal"
+format = "[$symbol($version) ]($style)"
 [python]
 symbol = " "
-style = "fg:teal bg:surface0 bold"
-format = '[ $symbol ($version) ]($style)'
-
+style = "fg:teal"
+format = "[$symbol($version) ]($style)"
 [rust]
 symbol = " "
-style = "fg:teal bg:surface0 bold"
-format = '[ $symbol ($version) ]($style)'
-
+style = "fg:teal"
+format = "[$symbol($version) ]($style)"
 [java]
 symbol = " "
-style = "fg:teal bg:surface0 bold"
-format = '[ $symbol ($version) ]($style)'
-
+style = "fg:teal"
+format = "[$symbol($version) ]($style)"
 [nodejs]
 symbol = ""
-style = "fg:blue bg:surface0 bold"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:blue"
+format = "[$symbol($version) ]($style)"
 
-# ─────────────────────────────────────────────
-# Command duration (shows if a command took a while)
-# ─────────────────────────────────────────────
 [cmd_duration]
 min_time = 2000
-style = "fg:subtext0 bg:surface0"
-format = '[  $duration ]($style)'
+style = "fg:subtext0"
+format = "[ 󱎫 $duration ]($style)"
 
-# ─────────────────────────────────────────────
-# The prompt character (changes color on error)
-# ─────────────────────────────────────────────
 [character]
-success_symbol = '[❯](bold green)'
-error_symbol = '[❯](bold red)'
-vimcmd_symbol = '[❮](bold green)'
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
 
 # ─────────────────────────────────────────────
-# Catppuccin Mocha palette
+# Tokyo Night palette
 # ─────────────────────────────────────────────
-[palettes.catppuccin_mocha]
-rosewater = "#f5e0dc"
-flamingo  = "#f2cdcd"
-pink      = "#f5c2e7"
-mauve     = "#cba6f7"
-red       = "#f38ba8"
-maroon    = "#eba0ac"
-peach     = "#fab387"
-yellow    = "#f9e2af"
-green     = "#a6e3a1"
-teal      = "#94e2d5"
-sky       = "#89dceb"
-sapphire  = "#74c7ec"
-blue      = "#89b4fa"
-lavender  = "#b4befe"
-text      = "#cdd6f4"
-subtext1  = "#bac2de"
-subtext0  = "#a6adc8"
-overlay2  = "#9399b2"
-overlay1  = "#7f849c"
-overlay0  = "#6c7086"
-surface2  = "#585b70"
-surface1  = "#45475a"
-surface0  = "#313244"
-base      = "#1e1e2e"
-mantle    = "#181825"
-crust     = "#11111b"
+[palettes.tokyonight]
+rosewater = "#f7768e"
+flamingo  = "#f7768e"
+pink      = "#bb9af7"
+mauve     = "#bb9af7"
+red       = "#f7768e"
+maroon    = "#f7768e"
+peach     = "#e0af68"
+yellow    = "#e0af68"
+green     = "#9ece6a"
+teal      = "#7dcfff"
+sky       = "#7dcfff"
+sapphire  = "#7aa2f7"
+blue      = "#7aa2f7"
+lavender  = "#bb9af7"
+text      = "#c0caf5"
+subtext1  = "#a9b1d6"
+subtext0  = "#565f89"
+overlay2  = "#565f89"
+overlay1  = "#565f89"
+overlay0  = "#414868"
+surface2  = "#414868"
+surface1  = "#292e42"
+surface0  = "#1f2335"
+base      = "#1a1b26"
+mantle    = "#16161e"
+crust     = "#13141c"
