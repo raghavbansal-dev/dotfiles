@@ -216,3 +216,5 @@ client.urgent           #f7768e #f7768e #1a1b26 #f7768e   #f7768e
 
 # Launch polybar
 exec_always --no-startup-id ~/.config/polybar/launch.sh
+
+bindsym $mod+y exec --no-startup-id xrandr --output Virtual-1 --auto

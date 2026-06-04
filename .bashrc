@@ -151,3 +151,4 @@ dotsync() {
 
 # Starship prompt (must be last)
 eval "$(starship init bash)"
+. "$HOME/.cargo/env"
