@@ -124,10 +124,10 @@ alias nvim-update='cd ~/.local/src/neovim && git fetch && git checkout stable &&
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
 # Notes Sync (works from any directory)
-alias notes='cd /media/sf_NOTES'
+alias notes='cd ~/notes-share/'
 notes-sync() {
     (
-        cd /media/sf_NOTES || { echo "NOTES folder not mounted"; return 1; }
+        cd ~/notes-share/ || { echo "NOTES folder not mounted"; return 1; }
         local msg="Notes version $(date +'%Y-%m-%d %H:%M')"
         git add . && git commit -m "$msg" && git push origin main && git push gitlab main
     )

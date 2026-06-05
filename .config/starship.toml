@@ -36,9 +36,9 @@ truncation_symbol = "…/"
 read_only = " 󰌾"
 [directory.substitutions]
 "Documents" = "󰈙 "
-"Downloads" = " "
+"Downloads" = ""
 "Music" = "󰝚 "
-"Pictures" = " "
+"Pictures" = ""
 "Developer" = "󰲋 "
 
 [git_branch]
