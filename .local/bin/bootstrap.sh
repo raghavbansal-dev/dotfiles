@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 #
-# bootstrap.sh — reproduce my dev environment on a fresh Linux distro.
+# bootstrap.sh — reproduce my dev environment + i3 rice on a fresh Linux distro.
 #
 # What it does (idempotent — safe to re-run):
 #   1. Detects the distro's package manager (apt / dnf / pacman)
-#   2. Installs system packages (compilers, clipboard, ssh, gh/glab, tree-sitter-cli...)
-#   3. Builds Neovim from source (latest stable tag)
+#   2. Installs system dev packages (compilers, clipboard, ssh, gh/glab...)
+#   2b. [Arch] Installs the i3 rice: WM, bar, launcher, audio, file managers, VM utils
+#   3. Builds Neovim from source (latest stable tag) + verifies vim.pack exists
 #   4. Installs tools not in distro repos: lazygit, uv, Rust (rustup), pynvim, starship
-#   5. Installs JetBrainsMono Nerd Font + Kitty terminal
+#   4b. [Arch] Installs yay (AUR) + Brave
+#   4c. [Arch] Installs the Tokyo Night GRUB theme (lives outside $HOME)
+#   5. Installs JetBrainsMono Nerd Font
 #   6. Sets git identity (name/email) if unset
 #   7. Clones + checks out dotfiles (bare repo), adds GitLab remote
-#   8. Prints manual next-steps (SSH keys, gh/glab auth — NOT scripted: secrets)
+#   8. Prints manual next-steps (SSH keys, fstab share, host VM settings — NOT scripted)
 #
 # Usage:
 #   chmod +x bootstrap.sh
@@ -79,12 +82,12 @@ pm_update() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. System packages
+# 2. System dev packages
 # ─────────────────────────────────────────────────────────────────────────────
 log "Updating package lists..."
 pm_update
 
-log "Installing system packages..."
+log "Installing system dev packages..."
 # Package names differ slightly across distros — handle per-PM.
 case "$PM" in
   apt)
@@ -97,7 +100,7 @@ case "$PM" in
       ripgrep fd-find \
       xclip wl-clipboard \
       bear \
-      kitty \
+      konsole \
       nodejs npm \
       openssh-client gh
     # Debian/Ubuntu install fd as 'fdfind'; telescope/configs expect 'fd'.
@@ -123,7 +126,7 @@ case "$PM" in
       ripgrep fd-find \
       xclip wl-clipboard \
       bear \
-      kitty \
+      konsole \
       nodejs npm \
       openssh gh tree-sitter-cli
     ;;
@@ -132,6 +135,7 @@ case "$PM" in
     # 'python' includes venv in stdlib (no python-virtualenv needed).
     # 'fd' is named 'fd' (no fdfind symlink needed, unlike Debian).
     # 'github-cli' is the gh package name; glab is in extra.
+    # (konsole comes from the rice block in 2b below.)
     pm_install \
       base-devel cmake gettext ninja \
       git curl unzip \
@@ -141,13 +145,74 @@ case "$PM" in
       ripgrep fd \
       xclip wl-clipboard \
       bear \
-      kitty \
       nodejs npm \
       openssh tree-sitter-cli \
       github-cli glab
     ;;
 esac
-ok "System packages installed."
+ok "System dev packages installed."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2b. Desktop / i3 rice packages   (Arch only — the rice is configured for Arch)
+# ─────────────────────────────────────────────────────────────────────────────
+# Reproduces the i3 desktop the dotfiles configs drive: WM, X server, bar,
+# launcher, notifications, wallpaper, PDF viewer, system monitor, the PipeWire
+# audio stack, file managers, and VirtualBox guest integration.
+# Grouped into separate install calls so one bad package can't abort the rest.
+if [ "$PM" = "pacman" ]; then
+  log "Installing desktop / i3 rice packages (Arch)..."
+
+  # WM + X server + core rice. xorg-xinit gives startx; xrandr/xprop are used
+  # by the resize keybind and window-class lookups; konsole is the terminal.
+  pm_install \
+    i3-wm i3status i3lock \
+    xorg-server xorg-xinit xorg-xrandr xorg-xprop \
+    polybar rofi dunst feh \
+    zathura zathura-pdf-mupdf \
+    btop pacman-contrib wmctrl \
+    konsole \
+    && ok "WM + X + bar + core rice installed." \
+    || warn "Some rice packages failed — check output above."
+
+  # Audio: PipeWire stack. Without pipewire-pulse + wireplumber the polybar
+  # VOL module silently shows nothing (pactl has no server to talk to).
+  pm_install \
+    pipewire pipewire-pulse wireplumber pavucontrol libpulse \
+    && ok "PipeWire audio stack installed." \
+    || warn "Audio packages failed — VOL module may not work."
+
+  # Enable PipeWire user services. --now may fail during bootstrap if there's
+  # no active user session bus yet, so this enables them for next login.
+  systemctl --user enable pipewire pipewire-pulse wireplumber 2>/dev/null \
+    && ok "PipeWire services enabled (start on next login)." \
+    || warn "Couldn't enable PipeWire now — after first login run:
+      systemctl --user enable --now pipewire pipewire-pulse wireplumber"
+
+  # File managers: yazi (TUI) + thunar (GUI) + thumbnailers.
+  pm_install \
+    yazi thunar gvfs tumbler ffmpegthumbnailer \
+    && ok "File managers installed." \
+    || warn "File manager packages failed."
+
+  # VirtualBox guest integration: shared folders (vboxsf), clipboard, resize.
+  pm_install virtualbox-guest-utils \
+    && ok "VirtualBox guest utils installed." \
+    || warn "virtualbox-guest-utils failed."
+  sudo systemctl enable --now vboxservice 2>/dev/null \
+    && ok "vboxservice enabled (resize + shared clipboard)." \
+    || warn "Couldn't enable vboxservice (fine if not in a VM)."
+
+  # Add user to vboxsf so shared folders (e.g. notes-share) are accessible.
+  # Takes effect on next LOGIN, not in this shell.
+  if getent group vboxsf >/dev/null 2>&1 && ! id -nG "$USER" | grep -qw vboxsf; then
+    sudo usermod -aG vboxsf "$USER" \
+      && ok "Added $USER to vboxsf group (re-login required)." \
+      || warn "Couldn't add to vboxsf group."
+  fi
+else
+  warn "Non-Arch system: skipping i3 rice (rice packages are Arch-only)."
+  warn "Dev toolchain still installs; set up your desktop manually."
+fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Neovim from source
@@ -170,6 +235,20 @@ else
     make CMAKE_BUILD_TYPE=Release
     sudo make install
   ) && ok "Neovim built and installed." || err "Neovim build failed — check output above."
+fi
+
+# Verify the built nvim actually has vim.pack (your plugin manager).
+# vim.pack is a built-in added in Neovim 0.12 — older 'stable' tags lack it,
+# which would silently break your entire plugin config on first launch.
+# Run with -u NONE so your config doesn't load (clean capability test).
+if have nvim; then
+  if nvim --headless -u NONE -c 'lua os.exit(vim.pack and 0 or 1)' 2>/dev/null; then
+    ok "Neovim has vim.pack (your config will load) ✓"
+  else
+    warn "This Neovim build LACKS vim.pack — your config needs Neovim 0.12+."
+    warn "Plugins will NOT load. Rebuild from a newer tag/master:"
+    warn "  rm \"\$(command -v nvim)\" && NVIM_BRANCH=master ./bootstrap.sh"
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -249,6 +328,78 @@ if ! grep -q 'starship init bash' "$HOME/.bashrc" 2>/dev/null; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 4b. AUR helper + Brave   (Arch only)
+# ─────────────────────────────────────────────────────────────────────────────
+# Brave ships via the AUR (brave-bin); installing it needs an AUR helper (yay).
+# makepkg must NOT run as root, so this runs as your user (it sudos internally
+# only for the final pacman install step).
+if [ "$PM" = "pacman" ]; then
+  if ! have yay; then
+    log "Installing yay (AUR helper)..."
+    TMP=$(mktemp -d)
+    if git clone https://aur.archlinux.org/yay.git "$TMP/yay" 2>/dev/null; then
+      ( cd "$TMP/yay" && makepkg -si --noconfirm ) \
+        && ok "yay installed." \
+        || err "yay build failed (you can build it manually later)."
+    else
+      err "Couldn't clone yay from AUR."
+    fi
+    rm -rf "$TMP"
+  else
+    ok "yay already installed. Skipping."
+  fi
+
+  if have yay; then
+    if have brave; then
+      ok "Brave already installed. Skipping."
+    else
+      log "Installing Brave (brave-bin from AUR)..."
+      yay -S --needed --noconfirm brave-bin \
+        && ok "Brave installed." \
+        || warn "Brave install failed (retry: yay -S brave-bin)."
+    fi
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4c. GRUB theme   (Arch only, GRUB systems only)
+# ─────────────────────────────────────────────────────────────────────────────
+# The Tokyo Night GRUB theme lives in /boot and /etc — OUTSIDE $HOME, so the
+# dotfiles repo cannot track it. This function is the ONLY place it gets
+# reproduced. Guard: skip if /boot/grub is absent (e.g. systemd-boot systems),
+# so it can never touch a non-GRUB bootloader.
+install_grub_theme() {
+  [ "$PM" = "pacman" ] || return 0
+  [ -d /boot/grub ] || { warn "No /boot/grub (systemd-boot?) — skipping GRUB theme."; return 0; }
+
+  if [ ! -d /boot/grub/themes/tokyo-night ]; then
+    log "Installing Tokyo Night GRUB theme..."
+    TMP=$(mktemp -d)
+    if git clone https://github.com/mino29/tokyo-night-grub.git "$TMP/tng" 2>/dev/null; then
+      sudo cp -r "$TMP/tng/tokyo-night" /boot/grub/themes/
+    else
+      err "Couldn't clone GRUB theme. Skipping."
+      rm -rf "$TMP"; return 0
+    fi
+    rm -rf "$TMP"
+  else
+    ok "GRUB theme already present. Skipping clone."
+  fi
+
+  # Point GRUB at the theme (handles commented, already-set, or absent line).
+  if grep -qE '^#?GRUB_THEME=' /etc/default/grub; then
+    sudo sed -i 's#^#\?GRUB_THEME=.*#GRUB_THEME="/boot/grub/themes/tokyo-night/theme.txt"#' /etc/default/grub
+  else
+    echo 'GRUB_THEME="/boot/grub/themes/tokyo-night/theme.txt"' | sudo tee -a /etc/default/grub >/dev/null
+  fi
+
+  sudo grub-mkconfig -o /boot/grub/grub.cfg \
+    && ok "GRUB theme applied (visible on next boot)." \
+    || err "grub-mkconfig failed — check output above."
+}
+install_grub_theme
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 5. Nerd Font
 # ─────────────────────────────────────────────────────────────────────────────
 FONT_DIR="$HOME/.local/share/fonts"
@@ -263,7 +414,7 @@ else
     unzip -o "$TMP/font.zip" -d "$FONT_DIR" >/dev/null
     rm -rf "$TMP"
     fc-cache -f >/dev/null 2>&1
-    ok "${NERD_FONT} Nerd Font installed. (Kitty picks it up from kitty.conf in your dotfiles.)"
+    ok "${NERD_FONT} Nerd Font installed. (Set it as Konsole's profile font.)"
   else
     err "Font download failed. Skipping."
   fi
@@ -310,6 +461,8 @@ else
     fi
 
     # Add the GitLab remote so dotsync can push to both.
+    # (Remotes live in local repo config and do NOT travel with a clone —
+    #  a fresh clone only gets 'origin', so the gitlab remote must be re-added.)
     dotfiles remote add gitlab "$DOTFILES_REPO_GITLAB" 2>/dev/null || true
 
     ok "Dotfiles checked out."
@@ -320,7 +473,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. Manual next-steps (secrets — deliberately NOT scripted)
+# 8. Manual next-steps (secrets + boot-risky edits — deliberately NOT scripted)
 # ─────────────────────────────────────────────────────────────────────────────
 cat <<'NEXTSTEPS'
 
@@ -332,28 +485,48 @@ cat <<'NEXTSTEPS'
   your dotfiles are already cloned and you're nearly done:
 
   1. RELOAD SHELL — open a new terminal (or: source ~/.bashrc)
-     so the dotfiles .bashrc (dotfiles alias, dotsync, starship)
-     and new tools (uv, cargo) are on PATH. Then verify:
+     so the dotfiles .bashrc (dotfiles alias, dotsync, starship,
+     yazi y() function) and new tools (uv, cargo) are on PATH:
        type dotfiles && dotfiles status
 
   2. NEOVIM — launch `nvim` once:
        • vim.pack downloads plugins (wait for it)
        • :Mason  → confirm LSPs installed
+       • :TSInstall markdown markdown_inline  (render-markdown needs these)
        • :TSUpdate  → compile treesitter parsers
        • :qa and reopen, then :checkhealth
 
-  3. TERMINAL — Kitty is installed, reads ~/.config/kitty/kitty.conf
-     from your dotfiles (font + theme preset). Just launch it.
-     (If Kitty lags in a VM with no GPU, use the desktop's default
-     terminal instead; Starship works in any terminal.)
+  3. TERMINAL — Konsole is installed. Set your Tokyo Night profile as
+     default (Konsole → Settings → Manage Profiles → mark as default) if
+     it's tracked in your dotfiles (~/.local/share/konsole/, ~/.config/konsolerc).
+     Set the profile font to "JetBrainsMono Nerd Font". Starship works in any terminal.
 
-  4. PROJECT CODE — clone your repos (they're NOT in dotfiles):
-       git clone git@github.com:raghavbansal-dev/cs50.git ~/cs50x
+  3b. START THE DESKTOP — verify ~/.xinitrc ends with `exec i3`, then run `startx`:
+        grep -q 'exec i3' ~/.xinitrc || echo 'exec i3' >> ~/.xinitrc
+      Workspaces should auto-open: Konsole on 1:CODE, Brave on 2:WEB, btop on 3:SYS.
+
+  4. PROJECT CODE — clone your repos (NOT in dotfiles):
+       mkdir -p ~/Developer
+       git clone git@github.com:raghavbansal-dev/cs50.git ~/Developer/cs50
+
+  ── VM (VirtualBox) integration ──
+   • RE-LOGIN or reboot so the vboxsf group takes effect (needed for shared folders).
+   • notes-share is NOT auto-configured — fstab edits can break boot, so it's manual.
+     To mount your NOTES shared folder, add ONE line to /etc/fstab (all on one line!),
+     adjusting the share name and uid/gid (check with `id`):
+       NOTES /home/<you>/notes-share vboxsf uid=1000,gid=1000,dmode=0755,fmode=0644,nofail 0 0
+     Then:
+       sudo mkdir -p ~/notes-share && sudo systemctl daemon-reload && sudo mount -a
+     Verify it's ONE line and `mount -a` errors nothing before you reboot.
+   • HOST-side (cannot be scripted): in VirtualBox →
+       Devices → Shared Folders   → add NOTES, Auto-mount OFF (fstab handles it)
+       Devices → Shared Clipboard → Bidirectional
+       View → Auto-resize Guest Display OFF (stops fractional resolutions / wallpaper tiling)
 
   ── If the dotfiles clone FAILED above (no SSH key yet) ──
      Set up the key, then re-run this script (it picks up here):
        ssh-keygen -t ed25519 -C "your.email@example.com"
-       cat ~/.ssh/id_ed25519.pub     # add to GitHub + GitLab
+       cat ~/.ssh/id_ed25519.pub     # add to BOTH GitHub + GitLab
        ssh -T git@github.com         # test each separately
        ssh -T git@gitlab.com
 

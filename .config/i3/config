@@ -44,6 +44,18 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
+
+# --- Workspace autostart layout ---
+assign [instance="code"] 1:CODE
+assign [class="Brave-browser"] 2:WEB
+assign [instance="btop"] 3:SYS
+
+exec --no-startup-id konsole
+exec --no-startup-id brave
+exec --no-startup-id konsole --name btop -e btop
+
+exec --no-startup-id i3-msg 'workspace 1:CODE'
+
 # Compositor — transparency, rounded corners, fades
 # exec_always --no-startup-id picom --config ~/.config/picom/picom.conf
 
@@ -129,6 +141,9 @@ bindsym $mod+Shift+m exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ tog
 
 # focus the child container
 #bindsym $mod+d focus child
+
+# Launch thunar
+bindsym $mod+Shift+f exec --no-startup-id thunar
 
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
