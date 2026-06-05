@@ -44,15 +44,16 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
-
 # --- Workspace autostart layout ---
 assign [instance="code"] 1:CODE
 assign [class="Brave-browser"] 2:WEB
 assign [instance="btop"] 3:SYS
+assign [class="Zathura"] 4:REF
 
-exec --no-startup-id konsole
-exec --no-startup-id brave
+exec --no-startup-id konsole --name code
+exec --no-startup-id brave --password-store=basic
 exec --no-startup-id konsole --name btop -e btop
+exec --no-startup-id zathura "/home/raghav/Downloads/Arch i3 Rice.pdf"
 
 exec --no-startup-id i3-msg 'workspace 1:CODE'
 
