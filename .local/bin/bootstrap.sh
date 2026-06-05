@@ -170,7 +170,7 @@ if [ "$PM" = "pacman" ]; then
     polybar rofi dunst feh \
     zathura zathura-pdf-mupdf \
     btop pacman-contrib wmctrl \
-    konsole \
+    konsole gnome-themes-extra \
     && ok "WM + X + bar + core rice installed." \
     || warn "Some rice packages failed — check output above."
 
@@ -193,6 +193,14 @@ if [ "$PM" = "pacman" ]; then
     yazi thunar gvfs tumbler ffmpegthumbnailer \
     && ok "File managers installed." \
     || warn "File manager packages failed."
+
+  # Desktop portals + user dirs. Without the portal backend, Chromium/Brave's
+  # download & upload file pickers silently fail on a no-DE setup. xdg-user-dirs
+  # creates ~/Downloads, ~/Documents, etc. so downloads have somewhere to go.
+  pm_install xdg-desktop-portal xdg-desktop-portal-gtk xdg-user-dirs \
+    && ok "Portals + user dirs installed." \
+    || warn "Portal/user-dirs packages failed (Brave downloads may fail)."
+  command -v xdg-user-dirs-update >/dev/null 2>&1 && xdg-user-dirs-update
 
   # VirtualBox guest integration: shared folders (vboxsf), clipboard, resize.
   pm_install virtualbox-guest-utils \
@@ -501,9 +509,13 @@ cat <<'NEXTSTEPS'
      it's tracked in your dotfiles (~/.local/share/konsole/, ~/.config/konsolerc).
      Set the profile font to "JetBrainsMono Nerd Font". Starship works in any terminal.
 
-  3b. START THE DESKTOP — verify ~/.xinitrc ends with `exec i3`, then run `startx`:
-        grep -q 'exec i3' ~/.xinitrc || echo 'exec i3' >> ~/.xinitrc
-      Workspaces should auto-open: Konsole on 1:CODE, Brave on 2:WEB, btop on 3:SYS.
+  3b. START THE DESKTOP — verify ~/.xinitrc sources /etc/X11/xinit/xinitrc.d
+      (imports DISPLAY into systemd so Brave's download/upload file-picker works)
+      and ends with `exec i3`. Then run `startx`. Your dotfiles .xinitrc already
+      has both — just confirm it checked out:
+      cat ~/.xinitrc
+      Workspaces should auto-open: Konsole on 1:CODE, Brave on 2:WEB, btop on 3:SYS,
+      and your reference PDF on 4:REF.
 
   4. PROJECT CODE — clone your repos (NOT in dotfiles):
        mkdir -p ~/Developer
